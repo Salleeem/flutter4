@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        google() // Necessário para usar o Google Services
+        mavenCentral()
+    }
+    dependencies {
+        implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
+        implementation("com.google.firebase:firebase-analytics")
+    }
+}
+
 allprojects {
     repositories {
         google()
