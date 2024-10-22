@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "822184636265",
+    "project_id": "bioo-c5f01",
+    "storage_bucket": "bioo-c5f01.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:822184636265:android:2bd4873bab09df372d17f8",
+        "android_client_info": {
+          "package_name": "br.com.salleeem.bioo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYLpTw811QeYE2ODhvkCrSS6e9FlTA_8w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
