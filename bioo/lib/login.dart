@@ -1,7 +1,11 @@
 import 'package:bioo/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:local_auth/local_auth.dart'; // Importando o pacote local_auth
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart'; // Para formatar a data e hora
 
 class LoginPage extends StatefulWidget {
   @override
@@ -9,57 +13,109 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _auth = FirebaseAuth.instance;
-  final LocalAuthentication _localAuth = LocalAuthentication(); // Instância do LocalAuthentication
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final LocalAuthentication _localAuth = LocalAuthentication();
   final TextEditingController _cpfController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
+  LatLng? _zonaSegura; // Para armazenar a localização da zona segura
+  double _raioZonaSegura = 200.0; // Raio da zona segura em metros
+
   Future<void> _login() async {
     try {
-      String cpf = _cpfController.text;
-      String senha = _senhaController.text;
+      String cpf = _cpfController.text.trim();
+      String senha = _senhaController.text.trim();
 
       // 1. Tenta fazer o login com email e senha
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: '$cpf@gmail.com', // Use CPF como email
+        email: '$cpf@gmail.com',
         password: senha,
       );
 
-      // 2. Autenticação biométrica
-      bool isAuthenticated = await _authenticateWithBiometrics();
+      // 2. Obter localização atual
+      Position localizacaoAtual = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
 
-      if (isAuthenticated) {
-        // 3. Se autenticado com sucesso, navegue para a Dashboard
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => DashboardPage(nome: '',)),
+      // 3. Recuperar a zona segura do Firestore
+      DocumentSnapshot userDoc = await _firestore
+          .collection('usuarios')
+          .doc(userCredential.user!.uid)
+          .get();
+
+      // Verifique se o documento existe e se a 'zona_segura' é um GeoPoint
+      if (userDoc.exists && userDoc['zona_segura'] is Map) {
+        var zonaSeguraFirestore = userDoc['zona_segura'];
+        LatLng zonaSegura = LatLng(zonaSeguraFirestore['latitude'], zonaSeguraFirestore['longitude']);
+
+        // 4. Calcular a distância entre a localização atual e a zona segura
+        double distancia = Geolocator.distanceBetween(
+          localizacaoAtual.latitude,
+          localizacaoAtual.longitude,
+          zonaSegura.latitude,
+          zonaSegura.longitude,
         );
+
+        // 5. Verificar se a distância está dentro do raio permitido
+        if (distancia <= _raioZonaSegura) {
+          // 6. Verificar se a biometria é suportada e disponível
+          bool canCheckBiometrics = await _localAuth.canCheckBiometrics;
+          if (canCheckBiometrics) {
+            // Autenticar digital
+            bool authenticated = await _localAuth.authenticate(
+              localizedReason:
+                  'Por favor, autentique-se com sua digital para acessar sua conta.',
+              options: const AuthenticationOptions(
+                useErrorDialogs: true,
+                stickyAuth: true,
+              ),
+            );
+
+            if (authenticated) {
+              // Gravar o login no Firestore na coleção "logins"
+              await _firestore.collection('logins').add({
+                'cpf': cpf,
+                'data': DateFormat('dd/MM/yyyy').format(DateTime.now()), // Data formatada
+                'horario': DateFormat('HH:mm:ss').format(DateTime.now()), // Horário formatado
+                'localizacao': {
+                  'latitude': localizacaoAtual.latitude,
+                  'longitude': localizacaoAtual.longitude,
+                },
+              });
+
+              // Navegar para a Dashboard
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => DashboardPage(
+                          nome: '', // Substitua por um nome real, se necessário
+                        )),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text('Falha na autenticação da digital.'),
+              ));
+            }
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Biometria não disponível no dispositivo.'),
+            ));
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Você está fora da zona segura.'),
+          ));
+        }
       } else {
-        // Se a autenticação falhar
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Autenticação biométrica falhou!'),
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Não foi possível recuperar a zona segura.'),
         ));
       }
     } catch (e) {
-      print(e);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Erro ao fazer login: $e'),
+        content: Text('Erro ao realizar login: $e'),
       ));
-    }
-  }
-
-  Future<bool> _authenticateWithBiometrics() async {
-    try {
-      return await _localAuth.authenticate(
-        localizedReason: 'Por favor, autentique-se para acessar sua conta.',
-        options: const AuthenticationOptions(
-          useErrorDialogs: true,
-          stickyAuth: true,
-        ),
-      );
-    } catch (e) {
-      print(e);
-      return false; // Retorna false se houver um erro na autenticação
     }
   }
 
@@ -67,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login'),
+        title: const Text('Login'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -75,17 +131,17 @@ class _LoginPageState extends State<LoginPage> {
           children: [
             TextField(
               controller: _cpfController,
-              decoration: InputDecoration(labelText: 'CPF'),
+              decoration: const InputDecoration(labelText: 'CPF'),
             ),
             TextField(
               controller: _senhaController,
-              decoration: InputDecoration(labelText: 'Senha'),
+              decoration: const InputDecoration(labelText: 'Senha'),
               obscureText: true,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _login,
-              child: Text('Login'),
+              child: const Text('Login'),
             ),
           ],
         ),
