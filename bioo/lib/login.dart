@@ -20,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _senhaController = TextEditingController();
 
   LatLng? _zonaSegura; // Para armazenar a localização da zona segura
-  double _raioZonaSegura = 200.0; // Raio da zona segura em metros
+  double _raioZonaSegura = 50.0; // Raio da zona segura em metros
 
   Future<void> _login() async {
     try {
