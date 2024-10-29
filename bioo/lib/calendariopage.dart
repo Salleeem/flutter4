@@ -46,50 +46,51 @@ class _CalendarPageState extends State<CalendarPage> {
 // Função para carregar dados do Firestore
   // Função para carregar dados do Firestore
 // Função para carregar dados do Firestore
-Future<void> _carregarDados() async {
-  QuerySnapshot snapshot = await _firestore.collection('ciclos').get();
-  if (snapshot.docs.isNotEmpty) {
-    var doc = snapshot.docs.last; // Carrega o último documento
-    setState(() {
-      _ultimaMenstruacaoData = (doc['ultima_menstruacao'] as Timestamp).toDate();
-      _tamanhoCiclo = doc['tamanho_ciclo'];
-      _duracaoMenstruacao = doc['duracao_menstruacao'];
-      _diasMenstruacaoConfirmada = List<DateTime>.from(
-          doc['dias_menstruacao_confirmada'].map((x) => (x as Timestamp).toDate()));
-      _diasPrevistos = List<DateTime>.from(
-          doc['dias_previsto'].map((x) => (x as Timestamp).toDate()));
+  Future<void> _carregarDados() async {
+    QuerySnapshot snapshot = await _firestore.collection('ciclos').get();
+    if (snapshot.docs.isNotEmpty) {
+      var doc = snapshot.docs.last; // Carrega o último documento
+      setState(() {
+        _ultimaMenstruacaoData =
+            (doc['ultima_menstruacao'] as Timestamp).toDate();
+        _tamanhoCiclo = doc['tamanho_ciclo'];
+        _duracaoMenstruacao = doc['duracao_menstruacao'];
+        _diasMenstruacaoConfirmada = List<DateTime>.from(
+            doc['dias_menstruacao_confirmada']
+                .map((x) => (x as Timestamp).toDate()));
+        _diasPrevistos = List<DateTime>.from(
+            doc['dias_previsto'].map((x) => (x as Timestamp).toDate()));
 
-      // Calcule os ciclos após carregar os dados
-      _calcularCiclos(); 
-      _exibirCalendario = true; // Exibe o calendário
-    });
+        // Calcule os ciclos após carregar os dados
+        _calcularCiclos();
+        _exibirCalendario = true; // Exibe o calendário
+      });
+    }
   }
-}
 
 // Função para calcular previsões de ciclo
-void _calcularCiclos() {
-  if (_ultimaMenstruacaoData != null) {
-    _diasMenstruacaoConfirmada.clear();
+  void _calcularCiclos() {
+    if (_ultimaMenstruacaoData != null) {
+      _diasMenstruacaoConfirmada.clear();
 
-    // Adiciona os dias confirmados do ciclo atual em rosa escuro
-    for (int j = 0; j < _duracaoMenstruacao; j++) {
-      _diasMenstruacaoConfirmada
-          .add(_ultimaMenstruacaoData!.add(Duration(days: j)));
+      // Adiciona os dias confirmados do ciclo atual em rosa escuro
+      for (int j = 0; j < _duracaoMenstruacao; j++) {
+        _diasMenstruacaoConfirmada
+            .add(_ultimaMenstruacaoData!.add(Duration(days: j)));
+      }
+
+      // Inicia a previsão da próxima menstruação
+      _proximaMenstruacaoPrevista =
+          _ultimaMenstruacaoData!.add(Duration(days: _tamanhoCiclo));
+
+      setState(() {
+        _exibirCalendario =
+            true; // Certifique-se de que isto está sendo definido corretamente
+        _calcularProximaPrevisao(); // Calcula as previsões assim que o ciclo é definido
+        _salvarDados(); // Salve os dados aqui ou após a confirmação do ciclo
+      });
     }
-
-    // Inicia a previsão da próxima menstruação
-    _proximaMenstruacaoPrevista =
-        _ultimaMenstruacaoData!.add(Duration(days: _tamanhoCiclo));
-
-    setState(() {
-      _exibirCalendario = true; // Certifique-se de que isto está sendo definido corretamente
-      _calcularProximaPrevisao(); // Calcula as previsões assim que o ciclo é definido
-      _salvarDados(); // Salve os dados aqui ou após a confirmação do ciclo
-    });
   }
-}
-
-
 
   // Função para calcular a próxima previsão com base na última confirmação
   void _calcularProximaPrevisao() {
@@ -183,7 +184,6 @@ void _calcularCiclos() {
   }
 
   // Função para calcular previsões de ciclo
-  
 
   // Função para verificar se o dia é fértil
   bool _isFertil(DateTime dia) {
@@ -200,162 +200,231 @@ void _calcularCiclos() {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calendário'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+        automaticallyImplyLeading: false, // Remove a seta de voltar
+        title: Row(
           children: [
-            if (!_exibirCalendario) // Exibir o questionário se o calendário não estiver visível
-              Column(
-                children: [
-                  const Text(
-                    'Preencha as informações:',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: _tamanhoCicloController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Tamanho do Ciclo (21 a 35 dias)',
+            Image.asset(
+              'assets/img/sem.png', // Substitua pela sua logo
+              height: 40, // Ajuste a altura conforme necessário
+            ),
+            const SizedBox(width: 8), // Espaço entre a imagem e o título
+            const Text('Calendário'),
+          ],
+        ),
+        backgroundColor: const Color(0xFF579EC2), // Cor da AppBar
+      ),
+      body: Container(
+        color: const Color(0xFFF5D5D4), // Cor do fundo
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              if (!_exibirCalendario)
+                Column(
+                  children: [
+                    const Text(
+                      'Preencha as informações:',
+                      style: TextStyle(fontSize: 20),
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        _tamanhoCiclo = int.tryParse(value) ?? 28;
-                      });
-                    },
-                  ),
-                  TextField(
-                    controller: _ultimaMenstruacaoController,
-                    decoration: const InputDecoration(
-                      labelText: 'Data da Última Menstruação (dd/MM/yyyy)',
+                    const SizedBox(height: 20),
+                    Container(
+                      color: const Color(
+                          0xFFF5D5D4), // Cor do espaço do formulário
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            TextField(
+                              controller: _tamanhoCicloController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Tamanho do Ciclo (21 a 35 dias)',
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  _tamanhoCiclo = int.tryParse(value) ?? 28;
+                                });
+                              },
+                            ),
+                            TextField(
+                              controller: _ultimaMenstruacaoController,
+                              decoration: const InputDecoration(
+                                labelText:
+                                    'Data da Última Menstruação (dd/MM/yyyy)',
+                              ),
+                              onTap: () async {
+                                FocusScope.of(context)
+                                    .requestFocus(FocusNode());
+                                DateTime? dataSelecionada =
+                                    await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2000),
+                                  lastDate: DateTime(2101),
+                                );
+                                if (dataSelecionada != null) {
+                                  setState(() {
+                                    _ultimaMenstruacaoData = dataSelecionada;
+                                    _ultimaMenstruacaoController.text =
+                                        DateFormat('dd/MM/yyyy')
+                                            .format(dataSelecionada);
+                                  });
+                                }
+                              },
+                            ),
+                            TextField(
+                              controller: _duracaoMenstruacaoController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText:
+                                    'Duração da Menstruação (1 a 10 dias)',
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  _duracaoMenstruacao =
+                                      int.tryParse(value) ?? 5;
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            ElevatedButton(
+                              onPressed: _calcularCiclos,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(
+                                    0xFF9A5071), // Cor do botão "Confirmar"
+                                foregroundColor:
+                                    Colors.white, // Cor do texto do botão
+                              ),
+                              child: const Text('Confirmar'),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    onTap: () async {
-                      FocusScope.of(context).requestFocus(FocusNode());
-                      DateTime? dataSelecionada = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                      );
-                      if (dataSelecionada != null) {
-                        setState(() {
-                          _ultimaMenstruacaoData = dataSelecionada;
-                          _ultimaMenstruacaoController.text =
-                              DateFormat('dd/MM/yyyy').format(dataSelecionada);
-                        });
-                      }
-                    },
-                  ),
-                  TextField(
-                    controller: _duracaoMenstruacaoController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Duração da Menstruação (1 a 10 dias)',
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _duracaoMenstruacao = int.tryParse(value) ?? 5;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _calcularCiclos,
-                    child: const Text('Confirmar'),
-                  ),
-                ],
-              ),
-            if (_exibirCalendario) // Exibir o calendário após o cálculo
-              Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  ],
+                ),
+              if (_exibirCalendario)
+                Expanded(
+                  child: Column(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.chevron_left),
-                        onPressed: () {
-                          setState(() {
-                            _focusedDay = DateTime(
-                                _focusedDay.year, _focusedDay.month - 1);
-                          });
-                        },
+                      Container(
+                        color: const Color(
+                            0xFFF5D5D4), // Cor do fundo do calendário
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_left),
+                                  onPressed: () {
+                                    setState(() {
+                                      _focusedDay = DateTime(
+                                        _focusedDay.year,
+                                        _focusedDay.month - 1,
+                                      );
+                                    });
+                                  },
+                                ),
+                                Text(
+                                  DateFormat('MMMM yyyy').format(_focusedDay),
+                                  style: const TextStyle(fontSize: 20),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_right),
+                                  onPressed: () {
+                                    setState(() {
+                                      _focusedDay = DateTime(
+                                        _focusedDay.year,
+                                        _focusedDay.month + 1,
+                                      );
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            GridView.builder(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 7,
+                                childAspectRatio: 1.0,
+                              ),
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: DateTime(_focusedDay.year,
+                                      _focusedDay.month + 1, 0)
+                                  .day,
+                              itemBuilder: (context, index) {
+                                DateTime diaAtual = DateTime(_focusedDay.year,
+                                    _focusedDay.month, index + 1);
+                                bool isMenstruacaoConfirmada =
+                                    _diasMenstruacaoConfirmada
+                                        .contains(diaAtual);
+                                bool isFertil = _isFertil(diaAtual);
+                                bool isMenstruacaoPrevista =
+                                    _diasPrevistos.contains(diaAtual);
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    if (isMenstruacaoConfirmada) {
+                                      _desmarcarMenstruacao(diaAtual);
+                                    } else {
+                                      _confirmarMenstruacao(diaAtual);
+                                    }
+                                  },
+                                  onLongPress: () =>
+                                      _exibirInformacoesDia(diaAtual),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: isMenstruacaoConfirmada
+                                          ? Colors.pink[900]
+                                          : (isMenstruacaoPrevista
+                                              ? Colors.pink[200]
+                                              : (isFertil
+                                                  ? Colors.lightBlue
+                                                  : Colors.transparent)),
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(50),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      '${diaAtual.day}',
+                                      style: TextStyle(
+                                          color: isMenstruacaoConfirmada
+                                              ? Colors.white
+                                              : Colors.black),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                      Text(
-                        DateFormat('MMMM yyyy').format(_focusedDay),
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.chevron_right),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
                         onPressed: () {
-                          setState(() {
-                            _focusedDay = DateTime(
-                                _focusedDay.year, _focusedDay.month + 1);
-                          });
+                          // Adicione a navegação para a dashboard aqui
+                          Navigator.pop(context);
                         },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color(0xFF9A5071), // Cor do botão "Voltar"
+                          foregroundColor:
+                              Colors.white, // Cor do texto do botão
+                        ),
+                        child: const Text('Voltar'),
                       ),
                     ],
                   ),
-                  GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 7,
-                      childAspectRatio: 1.0,
-                    ),
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount:
-                        DateTime(_focusedDay.year, _focusedDay.month + 1, 0)
-                            .day,
-                    itemBuilder: (context, index) {
-                      DateTime diaAtual = DateTime(
-                          _focusedDay.year, _focusedDay.month, index + 1);
-                      bool isMenstruacaoConfirmada =
-                          _diasMenstruacaoConfirmada.contains(diaAtual);
-                      bool isFertil = _isFertil(diaAtual);
-                      bool isMenstruacaoPrevista = _diasPrevistos
-                          .contains(diaAtual); // Verifica se é um dia previsto
-
-                      return GestureDetector(
-                        onTap: () {
-                          if (isMenstruacaoConfirmada) {
-                            _desmarcarMenstruacao(diaAtual);
-                          } else {
-                            _confirmarMenstruacao(diaAtual);
-                          }
-                        },
-                        onLongPress: () => _exibirInformacoesDia(diaAtual),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isMenstruacaoConfirmada
-                                ? Colors.pink[
-                                    900] // Rosa escuro para menstruação confirmada
-                                : (isMenstruacaoPrevista
-                                    ? Colors.pink[200]
-                                    : (isFertil
-                                        ? Colors.lightBlue
-                                        : Colors.transparent)),
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(
-                                50), // Bordas arredondadas
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            '${diaAtual.day}',
-                            style: TextStyle(
-                                color: isMenstruacaoConfirmada
-                                    ? Colors.white
-                                    : Colors.black),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-          ],
+                ),
+            ],
+          ),
         ),
+      ),
+      bottomNavigationBar: Container(
+        color: const Color(0xFF579EC2), // Cor sólida do rodapé
+        height: 60.0,
       ),
     );
   }

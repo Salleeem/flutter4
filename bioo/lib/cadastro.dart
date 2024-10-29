@@ -21,8 +21,8 @@ class _CadastroPageState extends State<CadastroPage> {
   final TextEditingController _cpfController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
-  LatLng? _zonaSegura; // Para armazenar a localização da zona segura
-  Position? _localizacaoAtual; // Para armazenar a localização atual
+  LatLng? _zonaSegura;
+  Position? _localizacaoAtual;
 
   Future<void> _obterLocalizacaoAtual() async {
     try {
@@ -30,7 +30,8 @@ class _CadastroPageState extends State<CadastroPage> {
         desiredAccuracy: LocationAccuracy.high,
       );
       setState(() {
-        _zonaSegura = LatLng(_localizacaoAtual!.latitude, _localizacaoAtual!.longitude);
+        _zonaSegura =
+            LatLng(_localizacaoAtual!.latitude, _localizacaoAtual!.longitude);
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -47,35 +48,37 @@ class _CadastroPageState extends State<CadastroPage> {
 
       if (cpf.isEmpty || senha.isEmpty || nome.isEmpty || _zonaSegura == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Por favor, preencha todos os campos e selecione uma zona segura.')),
+          const SnackBar(
+              content: Text(
+                  'Por favor, preencha todos os campos e selecione uma zona segura.')),
         );
         return;
       }
 
-      // Criar hash seguro da senha usando SHA-256
       String senhaHash = sha256.convert(utf8.encode(senha)).toString();
 
-      // Criando o usuário no Firebase Auth usando o CPF como e-mail
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: '$cpf@gmail.com',
         password: senha,
       );
 
-      // Verificar se a biometria é suportada e está disponível
       bool canCheckBiometrics = await _localAuth.canCheckBiometrics;
 
       if (canCheckBiometrics) {
-        // Autenticar digital
         bool authenticated = await _localAuth.authenticate(
-          localizedReason: 'Por favor, autentique-se com sua digital para concluir o cadastro',
+          localizedReason:
+              'Por favor, autentique-se com sua digital para concluir o cadastro',
         );
 
         if (authenticated) {
-          // Simular um hash da biometria
-          String digitalHash = sha256.convert(utf8.encode('simulacao_digital_$cpf')).toString();
+          String digitalHash =
+              sha256.convert(utf8.encode('simulacao_digital_$cpf')).toString();
 
-          // Armazenar os dados no Firestore
-          await _firestore.collection('usuarios').doc(userCredential.user!.uid).set({
+          await _firestore
+              .collection('usuarios')
+              .doc(userCredential.user!.uid)
+              .set({
             'nome': nome,
             'cpf': cpf,
             'senha_hash': senhaHash,
@@ -83,11 +86,10 @@ class _CadastroPageState extends State<CadastroPage> {
             'zona_segura': {
               'latitude': _zonaSegura!.latitude,
               'longitude': _zonaSegura!.longitude,
-              'raio': 200, // Raio de 200 metros
+              'raio': 200,
             },
           });
 
-          // Navegar para a dashboard
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => DashboardPage(nome: nome)),
@@ -99,7 +101,8 @@ class _CadastroPageState extends State<CadastroPage> {
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Biometria não disponível no dispositivo.')),
+          const SnackBar(
+              content: Text('Biometria não disponível no dispositivo.')),
         );
       }
     } catch (e) {
@@ -113,44 +116,113 @@ class _CadastroPageState extends State<CadastroPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF579EC2),
       appBar: AppBar(
         title: const Text('Cadastro'),
+        backgroundColor: const Color(0xFF579EC2),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _nomeController,
-              decoration: const InputDecoration(labelText: 'Nome'),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                // Exibe a imagem acima do formulário
+                Container(
+                  width: 200,
+                  height: 200,
+                  margin: const EdgeInsets.only(bottom: 16.0),
+                  child: Image.asset(
+                      'assets/img/logopes2.png'), // Carrega a imagem do logo
+                ),
+                Container(
+                  padding: const EdgeInsets.all(20.0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5D5D4),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Center(
+                        child: Text(
+                          'Cadastro',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      TextField(
+                        controller: _nomeController,
+                        decoration: const InputDecoration(labelText: 'Nome'),
+                      ),
+                      TextField(
+                        controller: _cpfController,
+                        decoration: const InputDecoration(labelText: 'CPF'),
+                      ),
+                      TextField(
+                        controller: _senhaController,
+                        decoration: const InputDecoration(labelText: 'Senha'),
+                        obscureText: true,
+                      ),
+                      const SizedBox(height: 20),
+                      TextField(
+                        enabled: false,
+                        decoration: InputDecoration(
+                          labelText:
+                              'Zona Segura: ${_zonaSegura != null ? "${_zonaSegura!.latitude}, ${_zonaSegura!.longitude}" : ""}',
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: _obterLocalizacaoAtual,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF9A5071),
+                        ),
+                        child: const Text(
+                          'Selecionar',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Color(0xFFF5D5D4),
+                          )
+                          ),
+                      ),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: SizedBox(
+                          width:
+                              200, // Largura fixa igual à definida na HomePage
+                          height:
+                              60, // Altura fixa igual à definida na HomePage
+                          child: ElevatedButton(
+                            onPressed: _cadastrar,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color(0xFF9A5071), // Cor do botão
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    10), // Bordas arredondadas
+                              ),
+                            ),
+                            child: const Text(
+                              'Cadastrar',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Color(
+                                    0xFFF5D5D4), // Texto na cor de fundo igual
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            TextField(
-              controller: _cpfController,
-              decoration: const InputDecoration(labelText: 'CPF'),
-            ),
-            TextField(
-              controller: _senhaController,
-              decoration: const InputDecoration(labelText: 'Senha'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            // Campo para exibir a zona segura selecionada
-            TextField(
-              enabled: false,
-              decoration: InputDecoration(
-                labelText: 'Zona Segura: ${_zonaSegura != null ? "${_zonaSegura!.latitude}, ${_zonaSegura!.longitude}" : "Selecione uma zona"}',
-              ),
-            ),
-            ElevatedButton(
-              onPressed: _obterLocalizacaoAtual, // Obter localização atual
-              child: const Text('Selecionar Zona Segura'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _cadastrar,
-              child: const Text('Cadastrar'),
-            ),
-          ],
+          ),
         ),
       ),
     );

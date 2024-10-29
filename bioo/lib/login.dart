@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:intl/intl.dart'; // Para formatar a data e hora
+import 'package:intl/intl.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -19,37 +19,39 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _cpfController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
-  LatLng? _zonaSegura; // Para armazenar a localização da zona segura
-  double _raioZonaSegura = 50.0; // Raio da zona segura em metros
+  double _raioZonaSegura = 50.0;
 
   Future<void> _login() async {
-    try {
-      String cpf = _cpfController.text.trim();
-      String senha = _senhaController.text.trim();
+  try {
+    String cpf = _cpfController.text.trim();
+    String senha = _senhaController.text.trim();
+    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      email: '$cpf@gmail.com',
+      password: senha,
+    );
 
-      // 1. Tenta fazer o login com email e senha
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: '$cpf@gmail.com',
-        password: senha,
-      );
+    // Recupera o documento do usuário no Firestore
+    DocumentSnapshot userDoc = await _firestore
+        .collection('usuarios')
+        .doc(userCredential.user!.uid)
+        .get();
 
-      // 2. Obter localização atual
+    if (userDoc.exists) {
+      String nome = userDoc['nome']; // Aqui você busca o nome do usuário
+
+      // Restante do código para verificar a zona segura e biometria
       Position localizacaoAtual = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      // 3. Recuperar a zona segura do Firestore
-      DocumentSnapshot userDoc = await _firestore
-          .collection('usuarios')
-          .doc(userCredential.user!.uid)
-          .get();
-
-      // Verifique se o documento existe e se a 'zona_segura' é um GeoPoint
-      if (userDoc.exists && userDoc['zona_segura'] is Map) {
+      if (userDoc['zona_segura'] is Map) {
+        // Código existente para verificar a zona segura
         var zonaSeguraFirestore = userDoc['zona_segura'];
-        LatLng zonaSegura = LatLng(zonaSeguraFirestore['latitude'], zonaSeguraFirestore['longitude']);
+        LatLng zonaSegura = LatLng(
+          zonaSeguraFirestore['latitude'],
+          zonaSeguraFirestore['longitude'],
+        );
 
-        // 4. Calcular a distância entre a localização atual e a zona segura
         double distancia = Geolocator.distanceBetween(
           localizacaoAtual.latitude,
           localizacaoAtual.longitude,
@@ -57,12 +59,9 @@ class _LoginPageState extends State<LoginPage> {
           zonaSegura.longitude,
         );
 
-        // 5. Verificar se a distância está dentro do raio permitido
         if (distancia <= _raioZonaSegura) {
-          // 6. Verificar se a biometria é suportada e disponível
           bool canCheckBiometrics = await _localAuth.canCheckBiometrics;
           if (canCheckBiometrics) {
-            // Autenticar digital
             bool authenticated = await _localAuth.authenticate(
               localizedReason:
                   'Por favor, autentique-se com sua digital para acessar sua conta.',
@@ -73,24 +72,22 @@ class _LoginPageState extends State<LoginPage> {
             );
 
             if (authenticated) {
-              // Gravar o login no Firestore na coleção "logins"
               await _firestore.collection('logins').add({
                 'cpf': cpf,
-                'data': DateFormat('dd/MM/yyyy').format(DateTime.now()), // Data formatada
-                'horario': DateFormat('HH:mm:ss').format(DateTime.now()), // Horário formatado
+                'data': DateFormat('dd/MM/yyyy').format(DateTime.now()),
+                'horario': DateFormat('HH:mm:ss').format(DateTime.now()),
                 'localizacao': {
                   'latitude': localizacaoAtual.latitude,
                   'longitude': localizacaoAtual.longitude,
                 },
               });
 
-              // Navegar para a Dashboard
+              // Passa o nome do usuário para a DashboardPage
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => DashboardPage(
-                          nome: '', // Substitua por um nome real, se necessário
-                        )),
+                  builder: (context) => DashboardPage(nome: nome), // Aqui
+                ),
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -112,38 +109,97 @@ class _LoginPageState extends State<LoginPage> {
           content: Text('Não foi possível recuperar a zona segura.'),
         ));
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Erro ao realizar login: $e'),
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Usuário não encontrado.'),
       ));
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('Erro ao realizar login: $e'),
+    ));
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF579EC2),
       appBar: AppBar(
         title: const Text('Login'),
+        backgroundColor: const Color(0xFF579EC2),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _cpfController,
-              decoration: const InputDecoration(labelText: 'CPF'),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Container(
+                  width: 200,
+                  height: 200,
+                  margin: const EdgeInsets.only(bottom: 20.0),
+                  child: Image.asset('assets/img/logopes2.png'),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(20.0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5D5D4),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Center(
+                        child: Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      TextField(
+                        controller: _cpfController,
+                        decoration: const InputDecoration(labelText: 'CPF'),
+                      ),
+                      TextField(
+                        controller: _senhaController,
+                        decoration: const InputDecoration(labelText: 'Senha'),
+                        obscureText: true,
+                      ),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: SizedBox(
+                          width: 200,
+                          height: 60,
+                          child: ElevatedButton(
+                            onPressed: _login,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF9A5071),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'Login',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Color(0xFFF5D5D4),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            TextField(
-              controller: _senhaController,
-              decoration: const InputDecoration(labelText: 'Senha'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _login,
-              child: const Text('Login'),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -31,8 +31,8 @@ class HomePage extends StatelessWidget {
             // Logo centralizada acima dos botões, com tamanho aumentado
             Center(
               child: Image.asset(
-                'assets/img/logomeio.png', // Caminho da logo grande
-                height: 250,
+                'assets/img/logomeio2.png', // Caminho da logo grande
+                height: 200,
               ),
             ),
             // Botões centralizados

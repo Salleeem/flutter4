@@ -140,11 +140,29 @@ class _TodoListPageState extends State<TodoListPage> {
     );
   }
 
+  void _goBack() {
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Lista de Tarefas')),
-      body: Padding(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/img/sem.png', // Substitua pela sua logo
+              height: 40, // Ajuste a altura conforme necessário
+            ),
+            const SizedBox(width: 8),
+            const Text('Lista de Tarefas'),
+          ],
+        ),
+        backgroundColor: const Color(0xFF579EC2), // Cor da AppBar
+        automaticallyImplyLeading: false, // Remove a seta de voltar
+      ),
+      body: Container(
+        color: const Color(0xFFF5D5D4), // Cor do fundo
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -215,6 +233,11 @@ class _TodoListPageState extends State<TodoListPage> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _goBack,
+        backgroundColor: const Color(0xFF9A5071), // Cor do botão "Voltar"
+        child: const Icon(Icons.arrow_back),
       ),
     );
   }
