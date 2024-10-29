@@ -85,3 +85,10 @@ Este aplicativo oferece um controle de acesso seguro para áreas restritas utili
 ---
 
 Este guia fornece uma visão geral do app e suas funcionalidades para garantir uma experiência de uso otimizada. Com ele, os usuários têm controle sobre suas atividades e registros de forma segura e intuitiva.
+
+### Diagrama de Classe
+<img width="668" alt="Diagrama de Classe" src="https://github.com/user-attachments/assets/2d59df9a-cc52-486d-9db0-766743078cc9">
+
+### Diagrama de Fluxo
+<img width="363" alt="Diagrama de Fluxokk" src="https://github.com/user-attachments/assets/697c0bfa-de7c-4148-9859-3301a80a8d40">
+
