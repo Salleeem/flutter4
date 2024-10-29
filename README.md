@@ -92,3 +92,7 @@ Este guia fornece uma visão geral do app e suas funcionalidades para garantir u
 ### Diagrama de Fluxo
 <img width="363" alt="Diagrama de Fluxokk" src="https://github.com/user-attachments/assets/697c0bfa-de7c-4148-9859-3301a80a8d40">
 
+### Prototipagem de Alta fidelidade
+
+<img width="587" alt="figma" src="https://github.com/user-attachments/assets/3148b9f7-aefd-4ac2-9a2d-3ab324ee0521">
+
