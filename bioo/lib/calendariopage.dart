@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -22,6 +23,73 @@ class _CalendarPageState extends State<CalendarPage> {
   DateTime _proximaMenstruacaoPrevista = DateTime.now();
   DateTime _focusedDay = DateTime.now();
   bool _exibirCalendario = false; // Controla a visibilidade do calendário
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarDados(); // Carrega os dados ao iniciar a página
+  }
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+// Função para salvar dados no Firestore
+  Future<void> _salvarDados() async {
+    await _firestore.collection('ciclos').add({
+      'ultima_menstruacao': _ultimaMenstruacaoData,
+      'tamanho_ciclo': _tamanhoCiclo,
+      'duracao_menstruacao': _duracaoMenstruacao,
+      'dias_menstruacao_confirmada': _diasMenstruacaoConfirmada,
+      'dias_previsto': _diasPrevistos,
+    });
+  }
+
+// Função para carregar dados do Firestore
+  // Função para carregar dados do Firestore
+// Função para carregar dados do Firestore
+Future<void> _carregarDados() async {
+  QuerySnapshot snapshot = await _firestore.collection('ciclos').get();
+  if (snapshot.docs.isNotEmpty) {
+    var doc = snapshot.docs.last; // Carrega o último documento
+    setState(() {
+      _ultimaMenstruacaoData = (doc['ultima_menstruacao'] as Timestamp).toDate();
+      _tamanhoCiclo = doc['tamanho_ciclo'];
+      _duracaoMenstruacao = doc['duracao_menstruacao'];
+      _diasMenstruacaoConfirmada = List<DateTime>.from(
+          doc['dias_menstruacao_confirmada'].map((x) => (x as Timestamp).toDate()));
+      _diasPrevistos = List<DateTime>.from(
+          doc['dias_previsto'].map((x) => (x as Timestamp).toDate()));
+
+      // Calcule os ciclos após carregar os dados
+      _calcularCiclos(); 
+      _exibirCalendario = true; // Exibe o calendário
+    });
+  }
+}
+
+// Função para calcular previsões de ciclo
+void _calcularCiclos() {
+  if (_ultimaMenstruacaoData != null) {
+    _diasMenstruacaoConfirmada.clear();
+
+    // Adiciona os dias confirmados do ciclo atual em rosa escuro
+    for (int j = 0; j < _duracaoMenstruacao; j++) {
+      _diasMenstruacaoConfirmada
+          .add(_ultimaMenstruacaoData!.add(Duration(days: j)));
+    }
+
+    // Inicia a previsão da próxima menstruação
+    _proximaMenstruacaoPrevista =
+        _ultimaMenstruacaoData!.add(Duration(days: _tamanhoCiclo));
+
+    setState(() {
+      _exibirCalendario = true; // Certifique-se de que isto está sendo definido corretamente
+      _calcularProximaPrevisao(); // Calcula as previsões assim que o ciclo é definido
+      _salvarDados(); // Salve os dados aqui ou após a confirmação do ciclo
+    });
+  }
+}
+
+
 
   // Função para calcular a próxima previsão com base na última confirmação
   void _calcularProximaPrevisao() {
@@ -69,15 +137,18 @@ class _CalendarPageState extends State<CalendarPage> {
 
   // Calcular a chance de engravidar com base no dia
   double _calcularChanceGravidez(DateTime dia) {
-    if (_diasMenstruacaoConfirmada.isEmpty) return 0.0; // Se não houver confirmações, chance é 0.
+    if (_diasMenstruacaoConfirmada.isEmpty)
+      return 0.0; // Se não houver confirmações, chance é 0.
 
-    DateTime diaOvulacao = _diasMenstruacaoConfirmada.last.add(Duration(days: _tamanhoCiclo ~/ 2));
+    DateTime diaOvulacao =
+        _diasMenstruacaoConfirmada.last.add(Duration(days: _tamanhoCiclo ~/ 2));
     DateTime periodoFertilInicio = diaOvulacao.subtract(Duration(days: 5));
     DateTime periodoFertilFim = diaOvulacao.add(Duration(days: 1));
 
     if (dia.isAfter(periodoFertilInicio) && dia.isBefore(periodoFertilFim)) {
       return 30.0; // Alta chance durante o período fértil
-    } else if (dia.isAfter(periodoFertilInicio.subtract(Duration(days: 3))) && dia.isBefore(periodoFertilInicio)) {
+    } else if (dia.isAfter(periodoFertilInicio.subtract(Duration(days: 3))) &&
+        dia.isBefore(periodoFertilInicio)) {
       return 10.0; // Média chance antes do período fértil
     } else {
       return 0.0; // Baixa chance fora do período fértil
@@ -112,26 +183,7 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   // Função para calcular previsões de ciclo
-  void _calcularCiclos() {
-    if (_ultimaMenstruacaoData != null) {
-      _diasMenstruacaoConfirmada.clear();
-
-      // Adiciona os dias confirmados do ciclo atual em rosa escuro
-      for (int j = 0; j < _duracaoMenstruacao; j++) {
-        _diasMenstruacaoConfirmada
-            .add(_ultimaMenstruacaoData!.add(Duration(days: j)));
-      }
-
-      // Inicia a previsão da próxima menstruação
-      _proximaMenstruacaoPrevista =
-          _ultimaMenstruacaoData!.add(Duration(days: _tamanhoCiclo));
-
-      setState(() {
-        _exibirCalendario = true;
-        _calcularProximaPrevisao(); // Calcula as previsões assim que o ciclo é definido
-      });
-    }
-  }
+  
 
   // Função para verificar se o dia é fértil
   bool _isFertil(DateTime dia) {
@@ -143,7 +195,6 @@ class _CalendarPageState extends State<CalendarPage> {
     return dia.isAfter(diaOvulacao.subtract(Duration(days: 5))) &&
         dia.isBefore(diaOvulacao.add(Duration(days: 1)));
   }
-  
 
   @override
   Widget build(BuildContext context) {
