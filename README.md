@@ -96,3 +96,8 @@ Este guia fornece uma visão geral do app e suas funcionalidades para garantir u
 
 <img width="587" alt="figma" src="https://github.com/user-attachments/assets/3148b9f7-aefd-4ac2-9a2d-3ab324ee0521">
 
+### Testes Unitários
+
+![testes](bioo/teste.png)
+
+
