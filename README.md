@@ -72,7 +72,7 @@ Este aplicativo oferece um controle de acesso seguro para áreas restritas utili
 ## Introdução
 Este aplicativo é uma ferramenta prática para gerenciar suas tarefas diárias e acompanhar seu ciclo menstrual. Com recursos como Controle de Acesso, Lista de Tarefas e Calendário do Ciclo Menstrual, o app foi projetado para facilitar a organização e o acompanhamento da saúde.
 
-## Página Inicial
+### Página Inicial
 Ao abrir o aplicativo, você será levado à Página Inicial, onde pode:
 
 Criar uma nova conta usando a opção de Cadastro.
@@ -99,7 +99,7 @@ Funcionalidades
 Lista de Tarefas
 A Lista de Tarefas permite que você gerencie suas atividades diárias com facilidade.
 
-## Adicionar Tarefa:
+### Adicionar Tarefa:
 
 Clique em "Adicionar Tarefa".
 Insira o título, descrição e prazo da tarefa.
@@ -116,7 +116,7 @@ Clique em "Excluir" para removê-la permanentemente.
 Calendário do Ciclo Menstrual
 No Calendário do Ciclo Menstrual, você pode registrar o início e a duração do ciclo, permitindo um acompanhamento mais detalhado de sua saúde.
 
-## Registrar Ciclo:
+### Registrar Ciclo:
 
 Clique em "Registrar Ciclo".
 Insira a data de início e a duração do ciclo.
@@ -124,6 +124,7 @@ Salve as informações para visualizá-las no calendário.
 Histórico do Ciclo:
 
 Acompanhe o histórico de ciclos anteriores, acessando o calendário e revisando dados registrados.
+
 ---
 
 ### Diagrama de Classe
