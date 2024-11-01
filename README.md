@@ -1,7 +1,7 @@
-# App de Controle de Acesso com Autenticação por Impressão Digital
+# Flowers
 
 ## Descrição do Projeto
-Este aplicativo oferece um controle de acesso seguro para áreas restritas utilizando autenticação biométrica por impressão digital, com validação em uma localização específica para maior segurança. Após a autenticação, os usuários podem visualizar o calendário menstrual, registrar dados do ciclo, ou acessar anotações pessoais. O banco de dados armazena registros de acessos com data, hora e localização, além de informações do ciclo menstrual e anotações.
+Nosso aplicativo oferece um controle de acesso seguro para áreas restritas utilizando autenticação biométrica por impressão digital, com validação em uma localização específica para maior segurança. Após a autenticação, os usuários podem visualizar o calendário menstrual, registrar dados do ciclo, ou acessar anotações pessoais. O banco de dados armazena registros de acessos com data, hora e localização, além de informações do ciclo menstrual e anotações.
 
 ---
 
@@ -40,6 +40,9 @@ Este aplicativo oferece um controle de acesso seguro para áreas restritas utili
 - **Uso:** Valida a localização do usuário no momento do login, garantindo o acesso somente em áreas específicas.
 - **Decisões de Design:** Realiza a validação em tempo real para reforçar a segurança do acesso.
 
+### Local Auth
+- **Autenticação:** Garante a segurança do usuário por meio de uma verificação biometrica.
+  
 ---
 
 ## Desafios e Soluções
@@ -67,30 +70,77 @@ Este aplicativo oferece um controle de acesso seguro para áreas restritas utili
 
 ---
 
-## Tutorial de Uso
+### Manual do Usuário
 
-### Página Inicial - Controle de Acesso
-- **Cadastro:** Crie uma nova conta.
-- **Login:** Acesse o sistema com uma conta existente.
+## Introdução
+Este aplicativo é uma ferramenta prática para gerenciar suas tarefas diárias e acompanhar seu ciclo menstrual. Com recursos como Controle de Acesso, Lista de Tarefas e Calendário do Ciclo Menstrual, o app foi projetado para facilitar a organização e o acompanhamento da saúde.
 
-### Navbar
-- **Menu de Navegação:** Permite a navegação entre as funcionalidades do app.
+### Página Inicial
+Ao abrir o aplicativo, você será levado à Página Inicial, onde pode:
 
-### Lista de Tarefas
-- **Adicionar, Editar e Excluir Tarefas:** Gerencie suas atividades diárias.
-  
-### Calendário do Ciclo Menstrual
-- **Registro de Ciclo:** Registre a duração e o início do ciclo.
+Criar uma nova conta usando a opção de Cadastro.
+Fazer login em uma conta existente para acessar as funcionalidades.
+Controle de Acesso
+Cadastro
+Para criar uma conta:
+
+Na página inicial, selecione Cadastro.
+Insira os dados solicitados, como nome, email e senha.
+Confirme a criação da conta e você será redirecionado para a Página Inicial.
+Login
+Para fazer login:
+
+Na página inicial, selecione Login.
+Insira seu email e senha cadastrados.
+Após a autenticação, você será redirecionado para a página principal com acesso às funcionalidades do aplicativo.
+Navbar
+A Navbar é o menu de navegação que permite acesso rápido às funcionalidades principais:
+
+Lista de Tarefas: Adicione, edite e exclua tarefas.
+Calendário do Ciclo Menstrual: Registre e acompanhe seu ciclo menstrual.
+Funcionalidades
+Lista de Tarefas
+A Lista de Tarefas permite que você gerencie suas atividades diárias com facilidade.
+
+### Adicionar Tarefa:
+
+Clique em "Adicionar Tarefa".
+Insira o título, descrição e prazo da tarefa.
+Confirme para salvar a tarefa na lista.
+Editar Tarefa:
+
+Na lista de tarefas, selecione a tarefa que deseja editar.
+Atualize as informações conforme necessário.
+Salve as alterações.
+Excluir Tarefa:
+
+Na lista de tarefas, localize a tarefa que deseja remover.
+Clique em "Excluir" para removê-la permanentemente.
+Calendário do Ciclo Menstrual
+No Calendário do Ciclo Menstrual, você pode registrar o início e a duração do ciclo, permitindo um acompanhamento mais detalhado de sua saúde.
+
+### Registrar Ciclo:
+
+Clique em "Registrar Ciclo".
+Insira a data de início e a duração do ciclo.
+Salve as informações para visualizá-las no calendário.
+Histórico do Ciclo:
+
+Acompanhe o histórico de ciclos anteriores, acessando o calendário e revisando dados registrados.
 
 ---
 
-Este guia fornece uma visão geral do app e suas funcionalidades para garantir uma experiência de uso otimizada. Com ele, os usuários têm controle sobre suas atividades e registros de forma segura e intuitiva.
-
 ### Diagrama de Classe
+
 <img width="668" alt="Diagrama de Classe" src="https://github.com/user-attachments/assets/2d59df9a-cc52-486d-9db0-766743078cc9">
 
 ### Diagrama de Fluxo
+
 <img width="363" alt="Diagrama de Fluxokk" src="https://github.com/user-attachments/assets/697c0bfa-de7c-4148-9859-3301a80a8d40">
+
+### Diagrama de Uso
+
+![testes](bioo/uso.png)
 
 ### Prototipagem de Alta fidelidade
 
