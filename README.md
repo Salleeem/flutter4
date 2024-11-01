@@ -40,6 +40,9 @@ Nosso aplicativo oferece um controle de acesso seguro para áreas restritas util
 - **Uso:** Valida a localização do usuário no momento do login, garantindo o acesso somente em áreas específicas.
 - **Decisões de Design:** Realiza a validação em tempo real para reforçar a segurança do acesso.
 
+### Local Auth
+- **Autenticação:** Garante a segurança do usuário por meio de uma verificação biometrica.
+  
 ---
 
 ## Desafios e Soluções
