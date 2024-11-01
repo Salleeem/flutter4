@@ -1,4 +1,4 @@
-# Flowers
+# Documentação do Projeto: Flowers
 
 ## Descrição do Projeto
 Nosso aplicativo oferece um controle de acesso seguro para áreas restritas utilizando autenticação biométrica por impressão digital, com validação em uma localização específica para maior segurança. Após a autenticação, os usuários podem visualizar o calendário menstrual, registrar dados do ciclo, ou acessar anotações pessoais. O banco de dados armazena registros de acessos com data, hora e localização, além de informações do ciclo menstrual e anotações.
