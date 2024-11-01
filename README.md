@@ -130,6 +130,10 @@ Acompanhe o histórico de ciclos anteriores, acessando o calendário e revisando
 
 ---
 
+### Cronograma
+
+![testes](bioo/crono.png)
+
 ### Diagrama de Classe
 
 <img width="668" alt="Diagrama de Classe" src="https://github.com/user-attachments/assets/2d59df9a-cc52-486d-9db0-766743078cc9">
