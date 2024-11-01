@@ -72,9 +72,6 @@ Nosso aplicativo oferece um controle de acesso seguro para áreas restritas util
 
 ### Manual do Usuário
 
-## Introdução
-Este aplicativo é uma ferramenta prática para gerenciar suas tarefas diárias e acompanhar seu ciclo menstrual. Com recursos como Controle de Acesso, Lista de Tarefas e Calendário do Ciclo Menstrual, o app foi projetado para facilitar a organização e o acompanhamento da saúde.
-
 ### Página Inicial
 Ao abrir o aplicativo, você será levado à Página Inicial, onde pode:
 
